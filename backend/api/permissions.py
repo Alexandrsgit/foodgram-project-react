@@ -1,11 +1,12 @@
 from rest_framework import permissions
 
 
-class IsModerOrAdminOrAuthor(permissions.BasePermission):
+class IsAdminOrAuthor(permissions.BasePermission):
+    """Кастомный класс для проверки прав для роли admin или author."""
+
     def has_object_permission(self, request, view, obj):
         return (request.method in permissions.SAFE_METHODS
                 or request.user.role == 'admin'
-                or request.user.role == 'moderator'
                 or obj.author == request.user)
 
     def has_permission(self, request, view):
@@ -19,8 +20,7 @@ class IsUser(permissions.BasePermission):
     def has_permission(self, request, view):
         return (request.user.is_authenticated
                 and (request.user.role == 'user'
-                     or request.user.role == 'admin'
-                     or request.user.role == 'moderator'))
+                     or request.user.role == 'admin'))
 
     def has_object_permission(self, request, view, obj):
         """Функция проверяет является ли пользователь user."""
@@ -29,23 +29,7 @@ class IsUser(permissions.BasePermission):
         return (request.user.is_authenticated
                 and obj.author == request.user
                 and (request.user.role == 'user'
-                     or request.user.role == 'admin'
-                     or request.user.role == 'moderator'))
-
-
-class IsModeraror(permissions.BasePermission):
-    """Кастомный класс для проверки прав для роли moderator."""
-
-    def has_permission(self, request, view):
-        return (request.user.is_authenticated
-                and request.user.role == 'moderator')
-
-    def has_object_permission(self, request, view, obj):
-        """Функция проверяет является ли пользователь moderator."""
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return (request.user.is_authenticated
-                and request.user.role == 'moderator')
+                     or request.user.role == 'admin'))
 
 
 class IsAdmin(permissions.BasePermission):
