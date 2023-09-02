@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from recipes.models import USER_ROLES, Tag, Recipe, RecipeIngredient, Ingredient, User, Follow, Favorite, ShoppingCart
+from recipes.models import Tag, Recipe, RecipeIngredient, Ingredient, User, Follow, Favorite, ShoppingCart
+from users.models import USER_ROLES
 from rest_framework.validators import UniqueTogetherValidator
 from djoser.serializers import UserCreateSerializer, UserSerializer
 

@@ -88,4 +88,3 @@ class ShoppingCart(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     download = models.BooleanField(default=False, verbose_name='Скачать')
-
