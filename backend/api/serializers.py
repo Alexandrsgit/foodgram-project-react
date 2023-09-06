@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from recipes.models import Tag, Recipe, RecipeIngredient, Ingredient, User, Follow, Favorite, ShoppingCart
-from users.models import USER_ROLES
+from recipes.models import Tag, Recipe, RecipeIngredient, Ingredient, Favorite, ShoppingCart
+from users.models import USER_ROLES, User, Subscription
 from rest_framework.validators import UniqueTogetherValidator
 from djoser.serializers import UserCreateSerializer, UserSerializer
+import webcolors
 
 class TagSerializer(serializers.ModelSerializer):
 
@@ -10,18 +11,18 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = '__all__'
 
-class FavoriteSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Favorite
-        fields = '__all__'
+    class Hex2NameColor(serializers.Field):
+        """Преобразование HEX-кода в цвет."""
 
-
-class ShoppingCartSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ShoppingCart
-        fileds = '__all__'
+    def to_representation(self, value):
+        return value
+    def to_internal_value(self, data):
+        try:
+            data = webcolors.hex_to_name(data)
+        except ValueError:
+            raise serializers.ValidationError('Для этого цвета нет имени')
+        return data
 
 
 class UserSerializer(UserCreateSerializer):
@@ -39,7 +40,6 @@ class UserSerializer(UserCreateSerializer):
 #            )
 #        return obj
 
-
 class UserGetSerializer(UserSerializer):
     """Сериализатор для работы с информацией о пользователях."""
     # is_subscribed = serializers.SerializerMethodField()
@@ -47,7 +47,7 @@ class UserGetSerializer(UserSerializer):
     class Meta:
         model = User
         fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'is_subscribed')
+                  'last_name')
 
 #    def get_is_subscribed(self, obj):
 #        request = self.context.get('request')
@@ -62,36 +62,6 @@ class UserGetSerializer(UserSerializer):
 #            and Subscribe.objects.filter(user=self.context['request'].user,
 #                                         author=obj).exists()
 #        )
-
-
-
-class FollowSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
-        slug_field='username', read_only=True,
-        default=serializers.CurrentUserDefault()
-    )
-    following = serializers.SlugRelatedField(
-        slug_field='username',
-        queryset=User.objects.all()
-    )
-
-    class Meta:
-        model = Follow
-        fields = ('__all__')
-        # Проверка UniqueConstraint на уровне сериализатора.
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Follow.objects.all(),
-                fields=('user', 'following')
-            )
-        ]
-
-    def validate(self, data):
-        """Проверка чтобы нельзя было подписаться на себя."""
-        if self.context['request'].user == data['following']:
-            raise serializers.ValidationError('Нельзя подписаться на себя!')
-        return data
-
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
@@ -155,3 +125,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 #        return super().to_representation(instance)
     
 
+class IngredientSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Ingredient
+        filelds = '__all__'
