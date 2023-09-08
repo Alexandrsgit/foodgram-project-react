@@ -6,15 +6,15 @@ from users.models import User, Subscription
 class UserAdmin(admin.ModelAdmin):
     """Админка пользователя."""
 
-    list_filter = ('email', 'username')
     list_display = ('id', 'email', 'username', 'first_name', 'last_name')
     search_fields = ('username', 'email', 'first_name', 'last_name')
+    list_filter = ('email', 'username')
     empty_value_display = '-пусто-'
 
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
-    """Админка пользователя."""
+    """Админка подписки на автора."""
 
     list_display = ('id', 'subscriber', 'author')
     search_fields = ('subscriber', 'author')

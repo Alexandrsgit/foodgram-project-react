@@ -1,22 +1,25 @@
-from rest_framework import serializers
-from recipes.models import Tag, Recipe, RecipeIngredient, Ingredient, Favorite, ShoppingCart
-from users.models import USER_ROLES, User, Subscription
-from rest_framework.validators import UniqueTogetherValidator
 from djoser.serializers import UserCreateSerializer, UserSerializer
+from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
+from users.models import User, Subscription
 import webcolors
 
+
 class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с моделью Tag."""
 
     class Meta:
         model = Tag
         fields = '__all__'
-
 
     class Hex2NameColor(serializers.Field):
         """Преобразование HEX-кода в цвет."""
 
     def to_representation(self, value):
         return value
+
     def to_internal_value(self, data):
         try:
             data = webcolors.hex_to_name(data)
@@ -25,11 +28,13 @@ class TagSerializer(serializers.ModelSerializer):
         return data
 
 
-class UserSerializer(UserCreateSerializer):
+class CustomUserSerializer(UserCreateSerializer):
+    """Сериализатор для регистрации пользователя."""
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'password')
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',
+                  'password')
 
 #    def validate(self, obj):
 #        invalid_usernames = ['me', 'set_password',
@@ -40,8 +45,10 @@ class UserSerializer(UserCreateSerializer):
 #            )
 #        return obj
 
+
 class UserGetSerializer(UserSerializer):
     """Сериализатор для работы с информацией о пользователях."""
+
     # is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -63,7 +70,10 @@ class UserGetSerializer(UserSerializer):
 #                                         author=obj).exists()
 #        )
 
+
 class RecipeIngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с моделью РецептИнгредиент."""
+
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name')
     measurement_units = serializers.CharField(
@@ -75,14 +85,19 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с моделью Рецепт."""
+
     tags = TagSerializer(many=True)
-    # ingredients = RecipeIngredientSerializer(many=True, source='recipeingredient_set')
+    # ingredients = RecipeIngredientSerializer(many=True,
+    #                                          source='recipeingredient_set')
     ingredients = serializers.SerializerMethodField()
     author = UserSerializer(read_only=True)
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited', 'is_in_shopping_cart', 'name', 'image', 'text', 'cooking_time')
+        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
+                  'is_in_shopping_cart', 'name', 'image', 'text',
+                  'cooking_time')
 
     def get_ingredients(self, instance):
         return RecipeIngredientSerializer(
@@ -92,6 +107,8 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания игредиента."""
+
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient',
         queryset=Ingredient.objects.all()
@@ -103,6 +120,8 @@ class RecipeIngredientCreateSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания рецепта."""
+
     ingredients = RecipeIngredientCreateSerializer(many=True)
 
     class Meta:
@@ -120,12 +139,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 amount=ingredient_data['amount']
             ).save()
         return instance
-    
+
 #    def to_representation(self, instance):
 #        return super().to_representation(instance)
-    
+
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с моделью Рецепт."""
 
     class Meta:
         model = Ingredient

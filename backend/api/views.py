@@ -1,25 +1,21 @@
-from django.shortcuts import HttpResponse
-from django.shortcuts import get_object_or_404
-from rest_framework.viewsets import ModelViewSet
 from api.permissions import IsAdmin, IsUser
-from rest_framework.response import Response
-from rest_framework import filters, generics, status, viewsets
-from rest_framework.decorators import action
-from recipes.models import Tag, Recipe, Ingredient
+from api.serializers import (IngredientSerializer, RecipeSerializer,
+                             RecipeCreateSerializer, TagSerializer)
+from rest_framework.viewsets import ModelViewSet
+from recipes.models import Ingredient, Recipe, Tag
 from users.models import User, Subscription
-from api.serializers import (
-    TagSerializer, RecipeSerializer, RecipeCreateSerializer,
-    IngredientSerializer)
-from rest_framework.permissions import AllowAny
-
 
 
 class TagViewSet(ModelViewSet):
+    """Вьюсет для Тега."""
+
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
 
 class RecipeViewSet(ModelViewSet):
+    """Вьюсет для Рецепта."""
+
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
 
@@ -39,5 +35,7 @@ class RecipeViewSet(ModelViewSet):
 
 
 class IngredientViewSet(ModelViewSet):
+    """Вьюсет для Инргедиента."""
+
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
