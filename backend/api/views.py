@@ -1,6 +1,6 @@
 from api.permissions import IsAdmin, IsUser
 from api.serializers import (IngredientSerializer, RecipeSerializer,
-                             RecipeCreateSerializer, TagSerializer)
+                             TagSerializer)
 from rest_framework.viewsets import ModelViewSet
 from recipes.models import Ingredient, Recipe, Tag
 from users.models import User, Subscription
