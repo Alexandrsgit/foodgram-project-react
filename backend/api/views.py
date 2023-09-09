@@ -1,6 +1,6 @@
 from api.permissions import IsAdmin, IsUser
 from api.serializers import (IngredientSerializer, RecipeSerializer,
-                             TagSerializer)
+                             TagSerializer, RecipeCrudSerializer)
 from rest_framework.viewsets import ModelViewSet
 from recipes.models import Ingredient, Recipe, Tag
 from users.models import User, Subscription
@@ -27,7 +27,7 @@ class RecipeViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'create':
-            return RecipeCreateSerializer
+            return RecipeCrudSerializer
         return RecipeSerializer
 
     def perform_create(self, serializer):
