@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 
 
 # Список ролей пользователя
@@ -7,6 +8,16 @@ USER_ROLES = (
     ('user', 'Пользователь'),
     ('admin', 'Администратор'),
 )
+
+
+def validate_username(value):
+    invalid_usernames = ['me', 'set_password',
+                            'subscriptions', 'subscribe']
+    if value.lower() in invalid_usernames:
+        raise ValidationError(
+            'Недопустимое имя пользователя!'
+        )
+    return value
 
 
 class User(AbstractUser):
