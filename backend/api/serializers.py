@@ -35,28 +35,6 @@ class UserGetSerializer(UserSerializer):
                 ).exists())
 
 
-class UserSubscribeSerializer(serializers.ModelSerializer):
-    """Сериализатор для подписки."""
-
-    class Meta:
-        model = Subscription
-        fields = '__all__'
-
-    def validate(self, data):
-        request = self.context.get('request')
-        if request.user == data['author']:
-            raise serializers.ValidationError(
-                'Нельзя подписываться на самого себя!'
-            )
-        return data
-
-    def to_representation(self, instance):
-        request = self.context.get('request')
-        return UserSubscribeRepresentSerializer(
-            instance.author, context={'request': request}
-        ).data
-
-
 class RecipeLightSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с краткой информацией рецепта."""
 
@@ -92,6 +70,28 @@ class UserSubscribeRepresentSerializer(UserGetSerializer):
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
+
+
+class UserSubscribeSerializer(serializers.ModelSerializer):
+    """Сериализатор для подписки."""
+
+    class Meta:
+        model = Subscription
+        fields = '__all__'
+
+    def validate(self, data):
+        request = self.context.get('request')
+        if request.user == data['author']:
+            raise serializers.ValidationError(
+                'Нельзя подписываться на самого себя!'
+            )
+        return data
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        return UserSubscribeRepresentSerializer(
+            instance.author, context={'request': request}
+        ).data
 
 
 class TagSerializer(serializers.ModelSerializer):

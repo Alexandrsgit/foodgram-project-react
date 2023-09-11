@@ -12,7 +12,7 @@ USER_ROLES = (
 
 def validate_username(value):
     invalid_usernames = ['me', 'set_password',
-                            'subscriptions', 'subscribe']
+                         'subscriptions', 'subscribe']
     if value.lower() in invalid_usernames:
         raise ValidationError(
             'Недопустимое имя пользователя!'
