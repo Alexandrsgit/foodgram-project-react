@@ -16,7 +16,7 @@ class UserAdmin(admin.ModelAdmin):
 class SubscriptionAdmin(admin.ModelAdmin):
     """Админка подписки на автора."""
 
-    list_display = ('id', 'subscriber', 'author')
-    search_fields = ('subscriber', 'author')
-    list_filter = ('subscriber', 'author')
+    list_display = ('id', 'user', 'author')
+    search_fields = ('user', 'author')
+    list_filter = ('user', 'author')
     empty_value_display = '-пусто-'

@@ -86,8 +86,8 @@ class RecipeIngredient(models.Model):
                                    help_text='Укажите ингредиенты')
     amount = models.PositiveIntegerField(validators=[
         MinValueValidator(
-            1, 'Время приготовления не должно быть меньше 1 минуты')],
-        verbose_name='Время приготовления',
+            1, 'минимальнео количество ингредиентов 1')],
+        verbose_name='Колличество',
         help_text='Укажите количество ингредиента')
 
     class Meta:

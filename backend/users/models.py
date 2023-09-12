@@ -25,7 +25,6 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=20, verbose_name='Роль',
                             choices=USER_ROLES, default='user')
-    is_subscribed = models.BooleanField(default=False)
 
     class Meta:
         """Уникальность полей в модели User."""
@@ -54,11 +53,11 @@ class User(AbstractUser):
 class Subscription(models.Model):
     """Модель подписки на автора."""
 
-    subscriber = models.ForeignKey(User, on_delete=models.CASCADE,
-                                   related_name='subscriber', null=True,
-                                   verbose_name='Подписчик')
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name='follower', null=True,
+                             verbose_name='Подписчик')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
-                               related_name='following_author', null=True,
+                               related_name='following', null=True,
                                verbose_name='Избранный автор')
 
     class Meta:
@@ -66,11 +65,11 @@ class Subscription(models.Model):
 
         constraints = [
             models.UniqueConstraint(
-                fields=['subscriber', 'author'],
-                name='unique_subscriber'
+                fields=['user', 'author'],
+                name='unique_user_author'
             )
         ]
 
     def __str__(self):
         """Кто на кого подписан."""
-        return f'{self.subscriber.username} подписан на {self.author.username}'
+        return f'{self.user.username} подписан на {self.author.username}'

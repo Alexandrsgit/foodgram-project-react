@@ -23,23 +23,23 @@ class UserSubscribeView(APIView):
     def post(self, request, user_id):
         author = get_object_or_404(User, id=user_id)
         serializer = UserSubscribeSerializer(
-            data={'subscriber': request.user.id, 'author': author.id},
-            context={'requser': request}
+            data={'user': request.user.id, 'author': author.id},
+            context={'request': request}
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def delete(self, requset, user_id):
+    def delete(self, request, user_id):
         author = get_object_or_404(User, id=user_id)
-        if not Subscription.objects.filter(subscriber=requset.user,
+        if not Subscription.objects.filter(user=request.user,
                                            author=author).exists():
             return Response(
                 {'errors': 'Вы не подписаны на этого пользователя'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        Subscription.objects.get(subscriber=requset.user,
-                                 author=author).delete()
+        Subscription.objects.get(user=request.user.id,
+                                 author=user_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -50,7 +50,7 @@ class UserSubscriptionViewSet(mixins.ListModelMixin,
     serializer_class = UserSubscribeRepresentSerializer
 
     def get_queryset(self):
-        return User.objects.filter(following_author=self.request.user)
+        return User.objects.filter(following__user=self.request.user)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -134,13 +134,13 @@ class RecipeViewSet(ModelViewSet):
     def download_shopping_cart(self, request):
         ingredients = RecipeIngredient.objects.filter(
             recipe__shopping_cart__user=request.user).values(
-                'ingredient__name', 'ingredient__measurement_unit').annotate(
+                'ingredient__name', 'ingredient__measurement_units').annotate(
                     all_ingredients_amount=Sum('amount')
                 )
         shopping_list = ['список покупок:\n']
         for ingredient in ingredients:
             name = ingredient['ingredient__name']
-            unit = ingredient['ingredient__measurement_unit']
+            unit = ingredient['ingredient__measurement_units']
             amount = ingredient['all_ingredients_amount']
             shopping_list.append(f'\n{name} - {amount}, {unit}')
         responce = HttpResponse(shopping_list, content_type='text/plain')
