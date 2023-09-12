@@ -38,6 +38,10 @@ class UserGetSerializer(UserSerializer):
 class RecipeLightSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с краткой информацией рецепта."""
 
+    image = Base64ImageField(read_only=True)
+    name = serializers.ReadOnlyField()
+    cooking_time = serializers.ReadOnlyField()
+
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
