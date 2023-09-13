@@ -1,3 +1,4 @@
+from api.pagination import CustomPagination
 from api.permissions import IsAdmin, IsUser
 from api.serializers import (IngredientSerializer, FavoriteSerializer,
                              RecipeSerializer, TagSerializer,
@@ -18,7 +19,7 @@ from users.models import User, Subscription
 
 
 class UserSubscribeView(APIView):
-    """Подписка/отписка от пользователя."""
+    """Подписка/отписка на пользователя."""
 
     def post(self, request, user_id):
         author = get_object_or_404(User, id=user_id)
@@ -43,9 +44,9 @@ class UserSubscribeView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class UserSubscriptionViewSet(mixins.ListModelMixin,
-                              viewsets.GenericViewSet):
-    """Все подписки на пользователя."""
+class UserSubscriptionsViewSet(mixins.ListModelMixin,
+                               viewsets.GenericViewSet):
+    """Все подписки на пользователей."""
 
     serializer_class = UserSubscribeRepresentSerializer
 
@@ -58,6 +59,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = CustomPagination
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -65,6 +67,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    pagination_class = CustomPagination
 
 
 class RecipeViewSet(ModelViewSet):
