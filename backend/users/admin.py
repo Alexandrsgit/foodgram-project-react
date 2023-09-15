@@ -6,8 +6,9 @@ from users.models import User, Subscription
 class UserAdmin(admin.ModelAdmin):
     """Админка пользователя."""
 
-    list_display = ('id', 'email', 'username', 'first_name', 'last_name')
-    search_fields = ('username', 'email', 'first_name', 'last_name')
+    list_display = ('id', 'email', 'username', 'first_name', 'last_name',
+                    'role')
+    search_fields = ('username', 'email', 'first_name', 'last_name', 'role')
     list_filter = ('email', 'username')
     empty_value_display = '-пусто-'
 

@@ -1,6 +1,6 @@
-from django.db import models
-from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import AbstractUser
+from django.db import models
 
 
 # Список ролей пользователя
@@ -11,6 +11,7 @@ USER_ROLES = (
 
 
 def validate_username(value):
+    """Проверка имени пользователя."""
     invalid_usernames = ['me', 'set_password',
                          'subscriptions', 'subscribe']
     if value.lower() in invalid_usernames:
@@ -23,12 +24,22 @@ def validate_username(value):
 class User(AbstractUser):
     """Модель пользователя."""
 
-    role = models.CharField(max_length=20, verbose_name='Роль',
+    username = models.CharField(verbose_name='Логин', max_length=150,
+                                unique=True)
+    first_name = models.CharField(verbose_name='Имя', max_length=150,)
+    last_name = models.CharField(verbose_name='Фамилия', max_length=150,)
+    email = models.EmailField(verbose_name='Email', unique=True, blank=False,
+                              null=False)
+    role = models.CharField(verbose_name='Роль', max_length=20,
                             choices=USER_ROLES, default='user')
+    password = models.CharField(max_length=150, verbose_name='Пароль')
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'password', 'first_name', 'last_name']
 
     class Meta:
         """Уникальность полей в модели User."""
 
+        ordering = ['id']
         constraints = [
             models.UniqueConstraint(
                 fields=['username', 'email'],
@@ -71,5 +82,4 @@ class Subscription(models.Model):
         ]
 
     def __str__(self):
-        """Кто на кого подписан."""
         return f'{self.user.username} подписан на {self.author.username}'

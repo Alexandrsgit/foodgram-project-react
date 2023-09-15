@@ -19,7 +19,7 @@ class CustomUserSerializer(UserCreateSerializer):
 
 
 class UserGetSerializer(UserSerializer):
-    """Сериализатор для работы с пользователями."""
+    """Сериализатор для работы с моделью User."""
 
     is_subscribed = serializers.SerializerMethodField()
 
@@ -60,17 +60,14 @@ class UserSubscribeRepresentSerializer(UserGetSerializer):
 
     def get_recipes(self, obj):
         request = self.context.get('request')
-        recipes_limit = None
-        if request:
-            recipes_limit = request.query_params.get('recipes_limit')
-        recipes = obj.recipes.all()
-        if recipes_limit:
-            recipes = obj.recipes.all()[:int(recipes_limit)]
-        return RecipeLightSerializer(recipes, many=True,
-                                     context={'request': request}).data
+        limit = request.GET.get('recipes_limit')
+        recipes = Recipe.objects.filter(author=obj.id)
+        if limit and limit.isdigit():
+            recipes = recipes[:int(limit)]
+        return RecipeLightSerializer(recipes, many=True).data
 
     def get_recipes_count(self, obj):
-        return obj.recipes.count()
+        return Recipe.objects.filter(author=obj.id).count()
 
 
 class UserSubscribeSerializer(serializers.ModelSerializer):
@@ -113,7 +110,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор для работы с моделью Ингредиент."""
+    """Сериализатор для работы с моделью Ingredient."""
 
     class Meta:
         model = Ingredient
@@ -121,7 +118,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор для работы с моделью РецептИнгредиент."""
+    """Сериализатор для работы с моделью RecipeIngredient."""
 
     id = serializers.ReadOnlyField(source='ingredient.id', read_only=True)
     name = serializers.CharField(source='ingredient.name', read_only=True)
@@ -134,7 +131,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор для работы с моделью Рецепт."""
+    """Сериализатор для работы с моделью Recipe."""
 
     tags = TagSerializer(many=True, read_only=True)
     ingredients = RecipeIngredientSerializer(many=True, read_only=True,
@@ -178,7 +175,7 @@ class RecipeIngredientCreateSerializer(serializers.ModelSerializer):
 
 
 class RecipeCrudSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Рецепт (CRUD)."""
+    """Сериализатор для модели Recipe(CRUD)."""
 
     ingredients = RecipeIngredientCreateSerializer(
         many=True,
@@ -255,30 +252,42 @@ class RecipeCrudSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
-    """Сериализатор для работы с избранными рецептами."""
+    """Сериализатор для модели Favorite."""
+
+    name = serializers.ReadOnlyField(
+        source='recipe.name',
+        read_only=True)
+    image = serializers.ImageField(
+        source='recipe.image',
+        read_only=True)
+    coocking_time = serializers.IntegerField(
+        source='recipe.cooking_time',
+        read_only=True)
+    id = serializers.PrimaryKeyRelatedField(
+        source='recipe',
+        read_only=True)
 
     class Meta:
         model = Favorite
-        fields = '__all__'
-
-    def to_representation(self, instance):
-        request = self.context.get('request')
-        return RecipeLightSerializer(
-            instance.recipe,
-            context={'request': request}
-        ).data
+        fields = ('id', 'name', 'image', 'coocking_time')
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    """Сериализатор для работы со списком покупок."""
+    """Сериализатор для модели ShoppingCart."""
+
+    name = serializers.ReadOnlyField(
+        source='recipe.name',
+        read_only=True)
+    image = serializers.ImageField(
+        source='recipe.image',
+        read_only=True)
+    coocking_time = serializers.IntegerField(
+        source='recipe.cooking_time',
+        read_only=True)
+    id = serializers.PrimaryKeyRelatedField(
+        source='recipe',
+        read_only=True)
 
     class Meta:
         model = ShoppingCart
-        fields = '__all__'
-
-    def to_representation(self, instance):
-        request = self.context.get('request')
-        return RecipeLightSerializer(
-            instance.recipe,
-            context={'request': request}
-        ).data
+        fields = ('id', 'name', 'image', 'coocking_time')

@@ -10,7 +10,7 @@ class Tag(models.Model):
                             help_text='Введите название тега',
                             unique=True)
     color = models.CharField(max_length=7, verbose_name='Цвет',
-                             help_text='Введите цвет в HEX',
+                             help_text='Введите цвет',
                              unique=True)
     slug = models.CharField(max_length=200, verbose_name='slug',
                             help_text='Укажите уникальный слаг',
@@ -26,10 +26,10 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(Tag, verbose_name='Название тега',
                                   help_text='Выбирите тег')
     image = models.ImageField(
-        upload_to='recipes/images/',
-        null=True,
+        upload_to='media/',
         default=None,
         blank=True,
+        verbose_name='Картинка',
         help_text='Добавьте изображение готового блюда'
     )
     name = models.CharField(max_length=200, verbose_name='Название пецепта',
@@ -38,7 +38,7 @@ class Recipe(models.Model):
         MinValueValidator(
             1, 'Время приготовления не должно быть меньше 1 минуты')],
         verbose_name='Время приготовления')
-    text = models.TextField(verbose_name='Описание рецепта',
+    text = models.TextField(verbose_name='Описание',
                             help_text='Введите описание рецепта')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                verbose_name='Автор')
@@ -52,6 +52,7 @@ class Recipe(models.Model):
     class Meta:
         """Проверка уникальности рецепта."""
 
+        ordering = ['-id']
         constraints = [
             models.UniqueConstraint(
                 fields=['name', 'author'],
@@ -69,6 +70,9 @@ class Ingredient(models.Model):
     measurement_units = models.CharField(max_length=200,
                                          verbose_name='Единицы измерения',
                                          help_text='Введите единицу измерения')
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return self.name

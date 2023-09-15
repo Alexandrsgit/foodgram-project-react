@@ -32,7 +32,7 @@ class RecipeAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
     def in_favorite(self, obj):
-        return obj.favorite.count()
+        return obj.favorite.all().count()
 
     in_favorite.short_description = 'Колличество добавлений в избранное'
 
