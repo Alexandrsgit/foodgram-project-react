@@ -45,7 +45,7 @@ class RecipeLightSerializer(serializers.ModelSerializer):
 
 
 class UserSubscribeRepresentSerializer(UserGetSerializer):
-    """"Информация о подписках пользователя."""
+    """Информация о подписках пользователя."""
 
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
@@ -184,13 +184,30 @@ class RecipeCrudSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
         many=True)
     image = Base64ImageField()
-    author = serializers.HiddenField(
+    author = UserGetSerializer(
         default=serializers.CurrentUserDefault())
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tags', 'ingredients',  'image',
-                  'name', 'text', 'cooking_time', 'author')
+        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
+                  'is_in_shopping_cart', 'name', 'image', 'text',
+                  'cooking_time')
+
+    def get_is_favorited(self, obj):
+        request = self.context.get('request')
+        return (request and request.user.is_authenticated
+                and Favorite.objects.filter(
+                    user=request.user, recipe=obj
+                ).exists())
+
+    def get_is_in_shopping_cart(self, obj):
+        request = self.context.get('request')
+        return (request and request.user.is_authenticated
+                and ShoppingCart.objects.filter(
+                    user=request.user, recipe=obj
+                ).exists())
 
     def validate_ingredients(self, value):
         ingredients = value

@@ -3,6 +3,7 @@ import base64
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
+
 class Hex2NameColor(serializers.Field):
     """Преобразование HEX-кода в цвет."""
 

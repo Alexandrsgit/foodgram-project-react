@@ -1,4 +1,4 @@
-from api.permissions import IsAdmin, IsUser, IsAdminOrAuthor
+from api.permissions import IsUser, IsAdminOrAuthor
 from api.serializers import (IngredientSerializer, FavoriteSerializer,
                              RecipeSerializer, TagSerializer,
                              RecipeCrudSerializer,
@@ -22,7 +22,8 @@ from users.models import User, Subscription
 
 class UserSubscribeView(APIView):
     """Подписка/отписка на пользователя."""
-    permission_classes = (IsAdmin, IsUser)
+
+    permission_classes = (IsUser, )
 
     def post(self, request, user_id):
         author = get_object_or_404(User, id=user_id)
@@ -52,7 +53,7 @@ class UserSubscriptionsViewSet(mixins.ListModelMixin,
     """Все подписки на пользователей."""
 
     serializer_class = UserSubscribeRepresentSerializer
-    permission_classes = (IsAdmin, IsUser)
+    permission_classes = (IsUser, )
 
     def get_queryset(self):
         return User.objects.filter(following__user=self.request.user)
@@ -74,8 +75,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     pagination_class = None
     permission_classes = (AllowAny, )
-    filter_backends = (DjangoFilterBackend, )
-#    filterset_class = IngredientSearchFilter
+    filter_backends = (IngredientSearchFilter, )
+    search_fields = ('^name',)
 
 
 class RecipeViewSet(ModelViewSet):
@@ -98,16 +99,13 @@ class RecipeViewSet(ModelViewSet):
         permission_classes=[IsAuthenticated, ]
     )
     def favorite(self, request, *args, **kwargs):
-        """
-        Получить / Добавить / Удалить  рецепт
-        из избранного у текущего пользоватля.
-        """
+        """Добавление или удаление рецепта из избранного."""
         recipe = get_object_or_404(Recipe, id=self.kwargs.get('pk'))
         user = self.request.user
         if request.method == 'POST':
             if Favorite.objects.filter(user=user,
                                        recipe=recipe).exists():
-                return Response({'errors': 'Рецепт уже добавлен!'},
+                return Response({'errors': 'Рецепт уже был добавлен'},
                                 status=status.HTTP_400_BAD_REQUEST)
             serializer = FavoriteSerializer(data=request.data)
             if serializer.is_valid(raise_exception=True):
@@ -118,27 +116,23 @@ class RecipeViewSet(ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
         if not Favorite.objects.filter(user=user,
                                        recipe=recipe).exists():
-            return Response({'errors': 'Объект не найден'},
+            return Response({'errors': 'Рецепт не найден'},
                             status=status.HTTP_404_NOT_FOUND)
         Favorite.objects.get(recipe=recipe).delete()
-        return Response('Рецепт успешно удалён из избранного.',
+        return Response('Рецепт удалён из избранного',
                         status=status.HTTP_204_NO_CONTENT)
-
 
     @action(detail=True,
             methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, **kwargs):
-        """
-        Получить / Добавить / Удалить  рецепт
-        из списка покупок у текущего пользоватля.
-        """
+        """Добавить или удалить рецепт в список покупок."""
         recipe = get_object_or_404(Recipe, id=self.kwargs.get('pk'))
         user = self.request.user
         if request.method == 'POST':
             if ShoppingCart.objects.filter(user=user,
                                            recipe=recipe).exists():
-                return Response({'errors': 'Рецепт уже добавлен!'},
+                return Response({'errors': 'Рецепт уже был добавлен'},
                                 status=status.HTTP_400_BAD_REQUEST)
             serializer = ShoppingCartSerializer(data=request.data)
             if serializer.is_valid(raise_exception=True):
@@ -149,10 +143,10 @@ class RecipeViewSet(ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
         if not ShoppingCart.objects.filter(user=user,
                                            recipe=recipe).exists():
-            return Response({'errors': 'Объект не найден'},
+            return Response({'errors': 'Рецепт не найден'},
                             status=status.HTTP_404_NOT_FOUND)
         ShoppingCart.objects.get(recipe=recipe).delete()
-        return Response('Рецепт успешно удалён из списка покупок.',
+        return Response('Рецепт удалён из списка покупок',
                         status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -164,14 +158,13 @@ class RecipeViewSet(ModelViewSet):
         ingredients = RecipeIngredient.objects.filter(
             recipe__shopping_cart__user=request.user).values(
                 'ingredient__name', 'ingredient__measurement_units').annotate(
-                    all_ingredients_amount=Sum('amount')
-                )
+                    all_ingredients_amount=Sum('amount'))
         shopping_list = ['Cписок покупок:\n']
         for ingredient in ingredients:
             name = ingredient['ingredient__name']
             unit = ingredient['ingredient__measurement_units']
             amount = ingredient['all_ingredients_amount']
-            shopping_list.append(f'\n{name} - {amount}, {unit}')
+            shopping_list.append(f'\n{name} ({unit}) - {amount}')
         responce = HttpResponse(shopping_list, content_type='text/plain')
         responce['Content-Disposition'] = (
             'attachment; filename="shopping_cart.txt"'
