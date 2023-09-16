@@ -119,6 +119,7 @@ class Favorite(models.Model):
     class Meta:
         """Проверка уникальности избранного."""
 
+        ordering = ['-id']
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
