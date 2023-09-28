@@ -210,12 +210,11 @@ class RecipeCrudSerializer(serializers.ModelSerializer):
                 ).exists())
 
     def validate_ingredients(self, value):
-        ingredients = value
-        if not ingredients:
+        if not value:
             raise ValidationError(
                 {'ingredients': 'Нужно выбрать ингредиент!'})
         ingredients_list = []
-        for item in ingredients:
+        for item in value:
             ingredient = get_object_or_404(Ingredient, name=item['id'])
             if ingredient in ingredients_list:
                 raise ValidationError(
