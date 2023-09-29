@@ -1,6 +1,10 @@
 # import os
+import logging
 from dotenv import load_dotenv
 from pathlib import Path
+
+
+logging.basicConfig(level=logging.INFO)
 
 load_dotenv()
 
