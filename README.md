@@ -62,16 +62,6 @@ cd backend/
 pip install -r requirements.txt
 ```
 
-В корне проекта создать файл .env и заполнить его:
-```
-POSTGRES_USER=django_user
-POSTGRES_PASSWORD=mysecretpassword
-POSTGRES_DB=django
-DB_HOST=db
-DB_PORT=5432
-SECRET_KEY=Your_secret_key
-```
-
 Выполнить миграции и добавить данные в БД:
 ```
 python manage.py makemigrations
