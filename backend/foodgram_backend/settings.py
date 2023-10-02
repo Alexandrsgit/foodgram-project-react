@@ -29,7 +29,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '158.160.70.68',
     'foodgram-project.ru',
-    ]
+]
 
 
 # Application definition

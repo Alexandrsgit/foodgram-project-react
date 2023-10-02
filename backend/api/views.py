@@ -21,7 +21,6 @@ from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
 from users.models import User, Subscription
 
 
-
 class UserSubscribeView(APIView):
     """Подписка/отписка на пользователя."""
 
