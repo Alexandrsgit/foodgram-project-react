@@ -32,14 +32,14 @@ class Recipe(models.Model):
         verbose_name='Картинка',
         help_text='Добавьте изображение готового блюда'
     )
-    name = models.CharField(max_length=200, verbose_name='Название пецепта',
+    name = models.CharField(max_length=200, verbose_name='Название рецепта',
                             help_text='Введите навзание рецепта')
     cooking_time = models.PositiveIntegerField(validators=[
         MinValueValidator(
             1, 'Время приготовления не должно быть меньше 1 минуты'),
         MaxValueValidator(
             360, 'Время приготовления не должно быть больше 6 часов'),
-        ],
+    ],
         verbose_name='Время приготовления')
     text = models.TextField(verbose_name='Описание',
                             help_text='Введите описание рецепта')
