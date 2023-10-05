@@ -1,5 +1,6 @@
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
+from django.core.exceptions import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
@@ -14,6 +15,35 @@ class CustomUserSerializer(UserCreateSerializer):
         model = User
         fields = ('email', 'id', 'username', 'first_name',
                   'last_name', 'password')
+
+        validators = [
+            UniqueTogetherValidator(
+                queryset=User.objects.all(),
+                fields=('username', 'email'),
+                message='Пользователь с таким Email уже существует'
+            )
+        ]
+
+    def validate_username(self, value):
+        """Проверка имени пользователя."""
+        invalid_usernames = ['me', 'set_password',
+                             'subscriptions', 'subscribe']
+        if value.lower() in invalid_usernames:
+            raise ValidationError(
+                'Недопустимое имя пользователя!'
+            )
+        return value
+
+    def validate(self, data):
+        if User.objects.filter(username=data.get('username')):
+            raise serializers.ValidationError(
+                'Пользователь с таким username уже существует'
+            )
+        if User.objects.filter(email=data.get('email')):
+            raise serializers.ValidationError(
+                'Пользователь с таким email уже существует'
+            )
+        return data
 
 
 class UserGetSerializer(UserSerializer):
@@ -127,6 +157,14 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         model = RecipeIngredient
         fields = ('id', 'name', 'measurement_units', 'amount')
 
+        validators = [
+            UniqueTogetherValidator(
+                queryset=RecipeIngredient.objects.all(),
+                fields=('recipe', 'ingredient'),
+                message='Рецепт с такими ингредиентами уже существует'
+            )
+        ]
+
 
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с моделью Recipe."""
@@ -172,13 +210,14 @@ class RecipeIngredientCreateSerializer(serializers.ModelSerializer):
         fields = ('id', 'amount')
 
 
-class RecipeCrudSerializer(RecipeSerializer):
+class RecipeCrudSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Recipe(CRUD)."""
 
     id = serializers.ReadOnlyField()
     ingredients = RecipeIngredientCreateSerializer(
         many=True,
-        write_only=True)
+        write_only=True,
+        required=True)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
         many=True)
@@ -191,31 +230,35 @@ class RecipeCrudSerializer(RecipeSerializer):
         fields = ('id', 'ingredients', 'tags', 'image', 'name', 'text',
                   'cooking_time', 'author')
 
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Recipe.objects.all(),
+                fields=('name', 'author'),
+                message='Рецепт с таким названием уже вами создан'
+            )
+        ]
+
     def validate(self, obj):
         for field in ['name', 'text', 'cooking_time']:
             if not obj.get(field):
                 raise serializers.ValidationError(
-                    f'{field} - Поле обазательно для заполнения.'
+                    f'{field} - Обязательное поле.'
                 )
         if not obj.get('tags'):
             raise serializers.ValidationError(
-                'Необходимо указать хотя бы один тег!'
+                'Нужно указать минимум 1 тег.'
             )
         if not obj.get('ingredients'):
             raise serializers.ValidationError(
-                'Необходимо указать хотя бы один ингредиент!'
+                'Нужно указать минимум 1 ингредиент.'
             )
         inrgedient_id_list = [item['id'] for item in obj.get('ingredients')]
         unique_ingredient_id_list = set(inrgedient_id_list)
         if len(inrgedient_id_list) != len(unique_ingredient_id_list):
             raise serializers.ValidationError(
-                'Выбранные ингредиенты должны быть уникальны.'
+                'Ингредиенты должны быть уникальны.'
             )
         return obj
-
-    def to_representation(self, instance):
-        return RecipeSerializer(instance,
-                                context=self.context).data
 
     def add_tags_ingredients(self, ingredients, tags, model):
         for ingredient in ingredients:
@@ -239,6 +282,10 @@ class RecipeCrudSerializer(RecipeSerializer):
         self.add_tags_ingredients(ingredients, tags, instance)
         return super().update(instance, validated_data)
 
+    def to_representation(self, instance):
+        return RecipeSerializer(instance,
+                                context=self.context).data
+
 
 class FavoriteSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Favorite."""
@@ -260,6 +307,14 @@ class FavoriteSerializer(serializers.ModelSerializer):
         model = Favorite
         fields = ('id', 'name', 'image', 'coocking_time')
 
+    def validate(self, data):
+        user = data['user']
+        if user.favorite.filter(recipe=data['recipe']).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в избранное.'
+            )
+        return data
+
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
     """Сериализатор для модели ShoppingCart."""
@@ -280,3 +335,11 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingCart
         fields = ('id', 'name', 'image', 'coocking_time')
+
+    def validate(self, data):
+        user = data['user']
+        if user.shopping_cart.filter(recipe=data['recipe']).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в корзину'
+            )
+        return data

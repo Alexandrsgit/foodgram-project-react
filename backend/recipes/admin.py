@@ -3,11 +3,15 @@ from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 
 
+admin.site.site_header = "Администрирование сайта Foodgram"
+
+
 class RecipeIngredientLine(admin.TabularInline):
     """Добавление поля ингредиентов в рецепты."""
 
     model = RecipeIngredient
     extra = 1
+    min_num = 1
 
 
 @admin.register(Tag)

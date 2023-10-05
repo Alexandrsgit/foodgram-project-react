@@ -16,6 +16,10 @@ class Tag(models.Model):
                             help_text='Укажите уникальный слаг',
                             unique=True)
 
+    class Meta:
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
+
     def __str__(self):
         return self.name
 
@@ -56,6 +60,8 @@ class Recipe(models.Model):
         """Проверка уникальности рецепта."""
 
         ordering = ['-id']
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
         constraints = [
             models.UniqueConstraint(
                 fields=['name', 'author'],
@@ -76,6 +82,12 @@ class Ingredient(models.Model):
 
     class Meta:
         ordering = ['name']
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_units'],
+                name='unique_name_measurement_units')]
 
     def __str__(self):
         return self.name
@@ -100,10 +112,12 @@ class RecipeIngredient(models.Model):
     class Meta:
         """Проверка на уникальность рецепта."""
 
+        verbose_name = 'Ингредиент в рецепте'
+        verbose_name_plural = 'Ингредиенты в рецепте'
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
-                name='unique_ingredients')]
+                name='unique_recipe_ingredient')]
 
     def __str__(self):
         return f'{self.ingredient} {self.amount}'
@@ -123,6 +137,8 @@ class Favorite(models.Model):
         """Проверка уникальности избранного."""
 
         ordering = ['-id']
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
@@ -148,6 +164,8 @@ class ShoppingCart(models.Model):
     class Meta:
         """Уникальность полей списка покупок."""
 
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],

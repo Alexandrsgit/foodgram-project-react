@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
 
@@ -25,7 +26,10 @@ class User(AbstractUser):
     """Модель пользователя."""
 
     username = models.CharField(verbose_name='Логин', max_length=150,
-                                unique=True)
+                                unique=True,
+                                validators=(UnicodeUsernameValidator(),
+                                            validate_username,)
+                                )
     first_name = models.CharField(verbose_name='Имя', max_length=150,)
     last_name = models.CharField(verbose_name='Фамилия', max_length=150,)
     email = models.EmailField(verbose_name='Email', unique=True, blank=False,
@@ -40,6 +44,8 @@ class User(AbstractUser):
         """Уникальность полей в модели User."""
 
         ordering = ['id']
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
         constraints = [
             models.UniqueConstraint(
                 fields=['username', 'email'],
@@ -74,6 +80,8 @@ class Subscription(models.Model):
     class Meta:
         """Уникальность подписки."""
 
+        verbose_name = 'Подписка на автора'
+        verbose_name_plural = 'Подписки на авторов'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'author'],
