@@ -85,14 +85,3 @@ python manage.py runserver
 Документация работы API поинтов - http://127.0.0.1:8000/api/docs/
 ```
 
-
-### URL-проекта в сети интернет: ###
-```
-https://foodgram-project.ru
-```
-
-Данные для входа в админку:
-```
-email: admin@yandex.ru
-password: admin4ik
-```
